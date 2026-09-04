@@ -1,4 +1,4 @@
-```js
+js
 const {
     Client,
     GatewayIntentBits,
@@ -134,4 +134,3 @@ client.on("interactionCreate", async interaction => {
 startBot();
 
 client.login(process.env.DISCORD_TOKEN);
-```
