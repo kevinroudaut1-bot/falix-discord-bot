@@ -45,7 +45,7 @@ async function startBot() {
 
 // Bot prêt
 client.once("ready", () => {
-    console.log(`🤖 Connecté en tant que ${client.user.tag}`);
+    console.log("Bot connecté en tant que " + client.user.tag);
 });
 
 // Gestion des commandes
@@ -57,11 +57,11 @@ client.on("interactionCreate", async interaction => {
 
         try {
             const response = await fetch(
-                `https://client.falixnodes.net/api/v2/servers/${SERVER_ID}/power`,
+                "https://client.falixnodes.net/api/v2/servers/" + SERVER_ID + "/power",
                 {
                     method: "POST",
                     headers: {
-                        "Authorization": `Bearer ${process.env.FALIX_API_KEY}`,
+                        "Authorization": "Bearer " + process.env.FALIX_API_KEY,
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
@@ -75,33 +75,33 @@ client.on("interactionCreate", async interaction => {
             // Serveur démarré
             if (response.ok) {
                 await interaction.editReply(
-                    "🟢 **Demande de démarrage envoyée !**\nLe serveur Minecraft va démarrer."
+                    "🟢 Demande de démarrage envoyée !\nLe serveur Minecraft va démarrer."
                 );
             }
 
             // Falix demande une publicité
-            else if (data.error?.code === "ad_required") {
-                const actionUrl = data.error?.action_url;
+            else if (data.error && data.error.code === "ad_required") {
+                const actionUrl = data.error.action_url;
 
                 if (actionUrl) {
                     const button = new ActionRowBuilder().addComponents(
                         new ButtonBuilder()
-                            .setLabel("📺 Regarder la publicité")
+                            .setLabel("Regarder la publicité")
                             .setStyle(ButtonStyle.Link)
                             .setURL(actionUrl)
                     );
 
                     await interaction.editReply({
                         content:
-                            "📺 **Une publicité est nécessaire avant de démarrer le serveur.**\n\n" +
-                            "1️⃣ Clique sur **Regarder la publicité**.\n" +
-                            "2️⃣ Regarde la publicité demandée par Falix.\n" +
-                            "3️⃣ Reviens sur Discord et relance **/start**.",
+                            "📺 Une publicité est nécessaire avant de démarrer le serveur.\n\n" +
+                            "1. Clique sur **Regarder la publicité**.\n" +
+                            "2. Regarde la publicité demandée par Falix.\n" +
+                            "3. Reviens sur Discord et utilise **/start** à nouveau.",
                         components: [button]
                     });
                 } else {
                     await interaction.editReply(
-                        "📺 **Falix demande de regarder une publicité, mais aucun lien n'a été fourni.**"
+                        "📺 Falix demande une publicité, mais aucun lien n'a été fourni."
                     );
                 }
             }
@@ -110,8 +110,13 @@ client.on("interactionCreate", async interaction => {
             else {
                 console.error("Erreur Falix :", data);
 
+                const message =
+                    data.error && data.error.message
+                        ? data.error.message
+                        : "Erreur inconnue";
+
                 await interaction.editReply(
-                    `❌ **Impossible de démarrer le serveur.**\nErreur : \`${data.error?.message || "Erreur inconnue"}\``
+                    "❌ Impossible de démarrer le serveur.\nErreur : " + message
                 );
             }
 
@@ -119,7 +124,7 @@ client.on("interactionCreate", async interaction => {
             console.error("Erreur :", error);
 
             await interaction.editReply(
-                "❌ **Une erreur est survenue lors de la connexion à Falix.**"
+                "❌ Une erreur est survenue lors de la connexion à Falix."
             );
         }
     }
@@ -130,3 +135,4 @@ startBot();
 
 client.login(process.env.DISCORD_TOKEN);
 ```
+
