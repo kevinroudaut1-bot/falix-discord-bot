@@ -1,4 +1,15 @@
-const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } = require("discord.js");
+```js
+const {
+    Client,
+    GatewayIntentBits,
+    REST,
+    Routes,
+    SlashCommandBuilder,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle
+} = require("discord.js");
+
 require("dotenv").config();
 
 const client = new Client({
@@ -7,6 +18,7 @@ const client = new Client({
 
 const SERVER_ID = "3421395";
 
+// Commande Discord
 const commands = [
     new SlashCommandBuilder()
         .setName("start")
@@ -15,6 +27,7 @@ const commands = [
 
 const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN);
 
+// Enregistrement de la commande
 async function startBot() {
     try {
         console.log("Enregistrement de la commande /start...");
@@ -26,14 +39,16 @@ async function startBot() {
 
         console.log("Commande /start enregistrée !");
     } catch (error) {
-        console.error(error);
+        console.error("Erreur lors de l'enregistrement de /start :", error);
     }
 }
 
+// Bot prêt
 client.once("ready", () => {
     console.log(`🤖 Connecté en tant que ${client.user.tag}`);
 });
 
+// Gestion des commandes
 client.on("interactionCreate", async interaction => {
     if (!interaction.isChatInputCommand()) return;
 
@@ -57,30 +72,61 @@ client.on("interactionCreate", async interaction => {
 
             const data = await response.json();
 
+            // Serveur démarré
             if (response.ok) {
                 await interaction.editReply(
                     "🟢 **Demande de démarrage envoyée !**\nLe serveur Minecraft va démarrer."
                 );
-            } else if (data.error?.code === "ad_required") {
-                await interaction.editReply(
-                    "📺 **Falix demande de regarder une publicité avant de démarrer le serveur.**"
-                );
-            } else {
-                console.error(data);
+            }
+
+            // Falix demande une publicité
+            else if (data.error?.code === "ad_required") {
+                const actionUrl = data.error?.action_url;
+
+                if (actionUrl) {
+                    const button = new ActionRowBuilder().addComponents(
+                        new ButtonBuilder()
+                            .setLabel("📺 Regarder la publicité")
+                            .setStyle(ButtonStyle.Link)
+                            .setURL(actionUrl)
+                    );
+
+                    await interaction.editReply({
+                        content:
+                            "📺 **Une publicité est nécessaire avant de démarrer le serveur.**\n\n" +
+                            "1️⃣ Clique sur **Regarder la publicité**.\n" +
+                            "2️⃣ Regarde la publicité demandée par Falix.\n" +
+                            "3️⃣ Reviens sur Discord et relance **/start**.",
+                        components: [button]
+                    });
+                } else {
+                    await interaction.editReply(
+                        "📺 **Falix demande de regarder une publicité, mais aucun lien n'a été fourni.**"
+                    );
+                }
+            }
+
+            // Autre erreur Falix
+            else {
+                console.error("Erreur Falix :", data);
 
                 await interaction.editReply(
-                    `❌ Impossible de démarrer le serveur.\nErreur : \`${data.error?.message || "Erreur inconnue"}\``
+                    `❌ **Impossible de démarrer le serveur.**\nErreur : \`${data.error?.message || "Erreur inconnue"}\``
                 );
             }
+
         } catch (error) {
-            console.error(error);
+            console.error("Erreur :", error);
 
             await interaction.editReply(
-                "❌ Une erreur est survenue lors de la connexion à Falix."
+                "❌ **Une erreur est survenue lors de la connexion à Falix.**"
             );
         }
     }
 });
 
+// Démarrage du bot
 startBot();
+
 client.login(process.env.DISCORD_TOKEN);
+```
